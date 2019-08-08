@@ -164,7 +164,7 @@ a = list()
 a.append(np.nan)
 Y = Y[1:]+a # 한칸씩 올리고 마지막에 np.nan 추가 
 session['y']=Y # 라벨 추가
-session = session[pd.notnull(session['y])] # 라벨값이 np.nan인경우
+session = session[pd.notnull(session['y'])] # 라벨값이 np.nan인경우
 del raw['DT_DIFF'] # it was just once used to make response variable.
 
 #%% (5) Merge datasets
@@ -238,7 +238,30 @@ while True:
     elif n ==-1:
         print("Done")
         break
+-----------------------------------------------------------------------------------------------------------------------
+                                     
+product = product.sort_values(by=['CLNT_ID', 'SESS_ID'], axis=0, ascending=[True, False])
+master= master.sort_values(by='PD_C',ascending=True)
+product_dummy =product.merge(master,on='PD_C',how='left')
 
+#사전식으로 대분류 배열 정렬 (ㄱ으로 시작하여 ㅎ으로 끝나도록)
+clac1_list=list(product_dummy['CLAC1_NM'].unique())
+clac1_list.sort()
+CLAC1_NM_dict=dict(zip(clac1_list,range(0,37)))
+
+#대분류 한글 -> 배정된 숫자로 변경
+product_dummy=product_dummy.replace({"CLAC1_NM": CLAC1_NM_dict})
+#대분류 더미변수화
+product_dummy = pd.concat([product_dummy, pd.get_dummies(product_dummy['CLAC1_NM'])], axis=1)
+#세션별 대분류 더미변수 갯수 
+product_dummy_agg= product_dummy.groupby(['CLNT_ID', 'SESS_ID'])[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36].agg(['sum'])
+#groupby -> dataframe 
+product_dummy_agg=pd.DataFrame(product_dummy_agg)
+product_dummy_agg = product_dummy_agg.reset_index()
+
+                                     
+                                     
+                                     
 # #### To pickles
 
 import pickle
